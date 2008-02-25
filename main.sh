@@ -35,5 +35,8 @@ function get_height_by_col {
 mapsize="$(get_width_by_row 0)x$(get_height_by_col 0)"
 convert -size $mapsize xc:none /tmp/blankmap
 
-montage -geometry +0+0 "4-*-0.jpg" $out
+
+composite \
+    -geometry ${x}x${y}{$xo}${yo} $in # a section of the map
+    $out # a temp file
 
