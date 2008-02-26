@@ -1,42 +1,40 @@
 #!/bin/bash
 
-# 4-wide-high.jpg 
+MAPURL="http://www.wardmaps.com/viewmap.php?map_id=4556"
 
-function get_map_horizontal_units {
-    #
-}
+IMGROOT=$(wget "$MAPURL" -q -O - | grep "unrestored400500" | grep "so.addVariable" | awk '{ print $2 }' | tr -d "[)\";]")
+echo $IMGROOT
+exit
 
-function get_map_vertical_units {
-    #
-}
+imgdatafolder="/tmp/imgdata.$$"
+mkdir $imgdatafolder
+imgdatafile="${imgdatafolder}/xmldata"
 
-function res_from_pos {
-	identify 4-${1}-${2}.jpg  | awk '{print $3}' | tr 'x' ':'
-}
+wget "${IMGROOT}/ImageProperties.xml" -O - | tr ' ' '\n' | tr -d '"' > $imgdatafile
+WIDTH=$(cat $imgdatafile | grep 'WIDTH=' | awk -F= '{print $2}')
+HEIGHT=$(cat $imgdatafile | grep 'HEIGHT=' | awk -F= '{print $2}')
+TILESIZE=$(cat $imgdatafile | grep 'TILESIZE=' | awk -F= '{print $2}')
 
-function get_width_by_row {
-	w=0
-	row=$1
-	for col in `seq 0 9`; do
-		w=$[ $w + $(res_from_pos $col $row | awk -F: '{print $1}') ]
-	done
-    echo $w
-}
+DIM=$(ruby -e "puts \"#{($WIDTH/$TILESIZE).floor}:#{($HEIGHT/$TILESIZE).floor}\"")
 
-function get_height_by_col {
-    height=p0
-    col=$1
-    for row in `seq 0 9`; do
-        h=$[ $h + $(res_from_pos $col $row | awk -F: '{print $2}') ]
-    done
-    echo $h
-}
+pre="4"
 
-mapsize="$(get_width_by_row 0)x$(get_height_by_col 0)"
-convert -size $mapsize xc:none /tmp/blankmap
+ymin=0
+ymax=$(echo $DIM | awk -F: '{print $2}')
+xmin=0
+xmax=$(echo $DIM | awk -F: '{print $1}')
 
+execstring="convert "
+for row in `seq $ymin $ymax`
+do
+  yoffset=$(bc <<<"${row} * ${TILESIZE}")
+  for col in `seq $xmin $xmax`
+  do
+    wget "${IMGROOT}/${pre}-${col}-${row}.jpg" -q -O "${imgdatafolder}/${col}-${row}.jpg"
+    xoffset=$(bc <<<"${col} * ${TILESIZE}")
+    execstring="${execstring} -page +${xoffset}+${yoffset} ${imgdatafolder}/${col}-${row}.jpg"
+  done
+done
 
-composite \
-    -geometry ${x}x${y}{$xo}${yo} $in # a section of the map
-    $out # a temp file
-
+execstring="${execstring} -mosaic ./o.png"
+eval "${execstring}"
