@@ -17,9 +17,9 @@ DIM=$(ruby -e "puts \"#{($WIDTH/$TILESIZE).floor}:#{($HEIGHT/$TILESIZE).floor}\"
 pre="4"  ## no idea what it does. im assuming its the zoom depth (4 should be the maximum zoom)
 
 ymin=0
-ymax=$(echo $DIM | awk -F: '{print $2}')
+ymax=$(bc <<<"scale=0; $HEIGHT/$TILESIZE")
 xmin=0
-xmax=$(echo $DIM | awk -F: '{print $1}')
+xmax=$(bc <<<"scale=0; $WIDTH/$TILESIZE")
 
 execstring="convert"
 for row in `seq $ymin $ymax`
