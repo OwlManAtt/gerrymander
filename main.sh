@@ -1,6 +1,8 @@
 #!/bin/bash
 MAPURL=$1 ## "http://www.wardmaps.com/viewmap.php?map_id=2822"
 IMGROOT=$(wget "$MAPURL" -q -O - | grep "unrestored400500" | grep "so.addVariable" | awk '{ print $2 }' | tr -d "[)\";]")
+NICENAME=$(echo "${IMGROOT}" | tr '/' '_')
+NICENAME=${NICENAME:9:$(echo -n "$NICENAME" | wc -c) - 10}.jpg
 IMGROOT="http://www.wardmaps.com/$IMGROOT"
 
 imgdatafolder="/tmp/imgdata.$$"
@@ -33,6 +35,6 @@ do
   done
 done
 
-execstring="${execstring} -mosaic ./o.jpg"
+execstring="${execstring} -mosaic ./${NICENAME}"
 eval "${execstring}"
 rm -rf "${imgdatafolder}"
