@@ -12,7 +12,6 @@ WIDTH=$(cat $imgdatafile | grep 'WIDTH=' | awk -F= '{print $2}')
 HEIGHT=$(cat $imgdatafile | grep 'HEIGHT=' | awk -F= '{print $2}')
 TILESIZE=$(cat $imgdatafile | grep 'TILESIZE=' | awk -F= '{print $2}')
 
-DIM=$(ruby -e "puts \"#{($WIDTH/$TILESIZE).floor}:#{($HEIGHT/$TILESIZE).floor}\"")
 
 pre="4"  ## no idea what it does. im assuming its the zoom depth (4 should be the maximum zoom)
 
